@@ -7,10 +7,10 @@ A full institutional macro dashboard covering India and global markets.
 ```
 macro-vercel/
 ├── index.html        ← Main dashboard (all HTML/CSS/JS in one file)
-├── api/
-│   └── proxy.js      ← Serverless function: proxies Yahoo Finance API
 ├── vercel.json       ← Vercel routing config
-└── README.md
+├── README.md
+└──api/
+   └── proxy.js      ← Serverless function: proxies Yahoo Finance API
 ```
 
 ## Deploy to Vercel
