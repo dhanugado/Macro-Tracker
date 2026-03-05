@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MACRO TERMINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #04080c;
+  --surface: #080f16;
+  --surface2: #0c1820;
+  --surface3: #101f2a;
+  --border: #162130;
+  --border2: #1e3040;
+  --text: #8eaabf;
+  --text2: #5a7a90;
+  --text3: #2e4a5e;
+  --bright: #d4eaf8;
+  --green: #00d4a0;
+  --red: #ff4060;
+  --yellow: #f5c518;
+  --blue: #2196f3;
+  --blue2: #0d6ebc;
+  --orange: #ff7c20;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --header-h: 52px;
+  --tab-h: 44px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* GRID BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(33,150,243,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(33,150,243,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── HEADER ── */
+.header {
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  color: var(--bright);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.logo span { color: var(--blue); }
+
+.header-ticker-strip {
+  flex: 1;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 60px, black calc(100% - 60px), transparent);
+}
+
+.ticker-scroll {
+  display: flex;
+  gap: 32px;
+  animation: scroll-left 60s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.ticker-scroll:hover { animation-play-state: paused; }
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.tick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.tick-name { color: var(--text2); letter-spacing: 0.05em; }
+.tick-val { color: var(--bright); font-weight: 500; }
+.tick-chg { font-size: 10px; }
+.tick-up { color: var(--green); }
+.tick-dn { color: var(--red); }
+
+.header-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+.timestamp { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; }
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(33,150,243,0.06); }
+.btn.active { border-color: var(--blue); color: var(--blue); background: rgba(33,150,243,0.1); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── TABS ── */
+.tabs {
+  height: var(--tab-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  padding: 0 20px;
+  gap: 0;
+  position: sticky;
+  top: var(--header-h);
+  z-index: 99;
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text2);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tab:hover { color: var(--text); border-bottom-color: var(--border2); }
+.tab.active { color: var(--bright); border-bottom-color: var(--blue); }
+.tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+.tab.active .tab-dot { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+
+/* ── CONTENT ── */
+.content { flex: 1; padding: 20px; display: none; }
+.content.active { display: block; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 24px; }
+
+.section-title {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 12px;
+  background: var(--blue);
+  flex-shrink: 0;
+}
+
+/* ── CARDS GRID ── */
+.cards { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.cards-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-4 { grid-template-columns: repeat(4, 1fr); }
+.cards-5 { grid-template-columns: repeat(5, 1fr); }
+.cards-6 { grid-template-columns: repeat(6, 1fr); }
+
+@media (max-width: 1100px) {
+  .cards-6 { grid-template-columns: repeat(3, 1fr); }
+  .cards-5 { grid-template-columns: repeat(3, 1fr); }
+  .cards-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .cards-6, .cards-5, .cards-4, .cards-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+.card {
+  background: var(--surface);
+  padding: 14px 16px;
+  position: relative;
+  transition: background 0.1s;
+}
+
+.card:hover { background: var(--surface2); }
+
+.card-label {
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-sub {
+  font-size: 9px;
+  color: var(--text3);
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+.card-value {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--bright);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.card-value.sm { font-size: 17px; }
+.card-value.xs { font-size: 14px; }
+
+.card-change {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.up { color: var(--green); }
+.dn { color: var(--red); }
+.neu { color: var(--text2); }
+
+.card-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+
+.badge-g { background: rgba(0,212,160,0.12); color: var(--green); border: 1px solid rgba(0,212,160,0.25); }
+.badge-r { background: rgba(255,64,96,0.12); color: var(--red); border: 1px solid rgba(255,64,96,0.25); }
+.badge-y { background: rgba(245,197,24,0.12); color: var(--yellow); border: 1px solid rgba(245,197,24,0.25); }
+.badge-b { background: rgba(33,150,243,0.1); color: var(--blue); border: 1px solid rgba(33,150,243,0.2); }
+
+/* ── TABLE ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.data-table th {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  background: var(--surface2);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(22,33,48,0.5);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--surface2); }
+
+.td-name { color: var(--text); font-weight: 500; }
+.td-sub { font-size: 9px; color: var(--text3); margin-top: 2px; }
+.td-val { color: var(--bright); font-family: var(--sans); font-weight: 600; font-size: 13px; text-align: right; white-space: nowrap; }
+.td-chg { text-align: right; white-space: nowrap; }
+.td-signal { text-align: center; }
+.td-note { color: var(--text2); font-size: 10px; }
+
+/* Signal pills */
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* ── TWO COLUMN LAYOUT ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+@media (max-width: 900px) {
+  .two-col, .three-col { grid-template-columns: 1fr; }
+}
+
+/* ── ANALYSIS PANEL ── */
+.analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+@media (max-width: 900px) { .analysis-grid { grid-template-columns: 1fr; } }
+
+.analysis-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+}
+
+.analysis-card.full { grid-column: 1 / -1; }
+
+.analysis-title {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bright);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.analysis-body {
+  font-size: 12px;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.analysis-body p { margin-bottom: 10px; }
+.analysis-body p:last-child { margin-bottom: 0; }
+
+.highlight { color: var(--bright); font-weight: 500; }
+.warn { color: var(--yellow); }
+.danger { color: var(--red); }
+.good-text { color: var(--green); }
+
+/* Scenario meter */
+.scenario-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(22,33,48,0.5);
+}
+
+.scenario-row:last-child { border-bottom: none; margin-bottom: 0; }
+.scenario-name { flex: 1; font-size: 11px; color: var(--text); }
+.scenario-bar-wrap { width: 120px; height: 4px; background: var(--border2); flex-shrink: 0; }
+.scenario-bar-fill { height: 100%; transition: width 1s ease; }
+.scenario-pct { width: 40px; text-align: right; font-size: 11px; color: var(--bright); flex-shrink: 0; }
+.scenario-status { width: 70px; text-align: right; flex-shrink: 0; }
+
+/* Loading */
+.skel {
+  background: linear-gradient(90deg, var(--border) 25%, var(--border2) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: skel-anim 1.4s infinite;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+@keyframes skel-anim {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 2px;
+  background: var(--border);
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  right: 0;
+  z-index: 200;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--blue);
+  width: 0%;
+  transition: width 0.2s;
+}
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* Yield curve mini-viz */
+.yield-curve {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 60px;
+  padding: 8px 0;
+}
+
+.yc-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.yc-bar { width: 100%; background: var(--blue2); min-height: 4px; transition: height 0.5s; border-top: 1px solid var(--blue); }
+.yc-label { font-size: 8px; color: var(--text3); }
+.yc-val { font-size: 9px; color: var(--text2); }
+
+/* Status dots */
+.status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-g { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.dot-r { background: var(--red); box-shadow: 0 0 5px var(--red); }
+.dot-y { background: var(--yellow); box-shadow: 0 0 5px var(--yellow); }
+.dot-n { background: var(--text3); }
+
+/* ── FORECAST SPECIFIC ── */
+.rate-path-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px;
+}
+
+.rate-path-title {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--bright);
+  margin-bottom: 4px;
+}
+
+.rate-path-current {
+  font-size: 28px;
+  font-family: var(--sans);
+  font-weight: 700;
+  color: var(--bright);
+  margin: 10px 0 4px;
+}
+
+.rate-path-meta {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+
+.rate-path-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.rate-path-timeline::before {
+  content: '';
+  position: absolute;
+  left: 72px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border2);
+}
+
+.rpt-row {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(22,33,48,0.4);
+  position: relative;
+}
+
+.rpt-row:last-child { border-bottom: none; }
+
+.rpt-date {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+  text-align: right;
+  padding-right: 16px;
+}
+
+.rpt-bar-wrap {
+  height: 6px;
+  background: var(--border);
+  position: relative;
+  border-radius: 0;
+}
+
+.rpt-bar {
+  height: 100%;
+  border-radius: 0;
+  transition: width 0.8s ease;
+}
+
+.rpt-val {
+  font-size: 12px;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--bright);
+  text-align: right;
+  white-space: nowrap;
+  min-width: 55px;
+}
+
+.rpt-dot {
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--bg);
+}
+
+.rpt-note {
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+}
+
+/* trend arrows */
+.trend-up { color: var(--green); font-size: 14px; }
+.trend-dn { color: var(--red); font-size: 14px; }
+.trend-fl { color: var(--text2); font-size: 14px; }
+
+/* calendar */
+.cal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.cal-month {
+  background: var(--surface2);
+  padding: 10px 14px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--sans);
+  font-weight: 600;
+}
+
+.cal-event {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(22,33,48,0.4);
+}
+
+.cal-event:last-child { border-bottom: none; }
+
+.cal-date-box {
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  min-width: 36px;
+  text-align: center;
+  padding: 4px 6px;
+  flex-shrink: 0;
+}
+
+.cal-day { font-size: 16px; font-family: var(--sans); font-weight: 700; color: var(--bright); line-height: 1; }
+.cal-mon { font-size: 8px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+
+.cal-body { flex: 1; }
+.cal-event-name { font-size: 11px; color: var(--text); font-weight: 500; }
+.cal-event-sub { font-size: 10px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
+.cal-impact { font-size: 9px; padding: 1px 6px; border-radius: 1px; margin-top: 4px; display: inline-block; }
+.cal-high { background: rgba(255,64,96,0.12); color: var(--red); border: 1px solid rgba(255,64,96,0.2); }
+.cal-med { background: rgba(245,197,24,0.1); color: var(--yellow); border: 1px solid rgba(245,197,24,0.2); }
+.cal-low { background: rgba(33,150,243,0.08); color: var(--blue); border: 1px solid rgba(33,150,243,0.15); }
+
+/* scenario cards */
+.scenario-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px;
+}
+
+.sc-header {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid;
+}
+
+.sc-prob {
+  font-size: 28px;
+  font-family: var(--sans);
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.sc-item {
+  font-size: 11px;
+  color: var(--text);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(22,33,48,0.4);
+  line-height: 1.6;
+}
+
+.sc-item:last-child { border-bottom: none; }
+.sc-label { font-size: 9px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
+
+@media (max-width: 800px) {
+  #scenario-grid { grid-template-columns: 1fr !important; }
+}
+
+</style>
+</head>
+<body>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="app">
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="logo">Macro<span>Terminal</span></div>
+  <div class="header-ticker-strip">
+    <div class="ticker-scroll" id="tickerScroll">
+      <!-- populated by JS -->
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="timestamp" id="ts">--:--:-- IST</span>
+    <span id="dataStatus" style="font-size:10px;color:var(--yellow);letter-spacing:0.08em;"></span>
+    <button class="btn" id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- ── TABS ── -->
+<nav class="tabs">
+  <div class="tab active" onclick="switchTab('global')" id="tab-global">
+    <span class="tab-dot"></span>Global Markets
+  </div>
+  <div class="tab" onclick="switchTab('india')" id="tab-india">
+    <span class="tab-dot"></span>India Deep Dive
+  </div>
+  <div class="tab" onclick="switchTab('commodities')" id="tab-commodities">
+    <span class="tab-dot"></span>Commodities
+  </div>
+  <div class="tab" onclick="switchTab('analysis')" id="tab-analysis">
+    <span class="tab-dot"></span>Macro Analysis
+  </div>
+  <div class="tab" onclick="switchTab('forecasts')" id="tab-forecasts">
+    <span class="tab-dot"></span>Consensus Forecasts
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 1: GLOBAL MARKETS
+════════════════════════════════════════════════════════ -->
+<div class="content active" id="tab-global-content">
+
+  <!-- EQUITY INDICES -->
+  <div class="section">
+    <div class="section-title">Global Equity Indices</div>
+    <div class="cards cards-6" id="equities-cards">
+      <!-- SP500, NASDAQ, DOW, FTSE, DAX, CAC, Nikkei, HSI, ASX, SGX, Kospi, BSE -->
+    </div>
+  </div>
+
+  <!-- SOVEREIGN YIELDS -->
+  <div class="section">
+    <div class="section-title">Sovereign Bond Yields</div>
+    <div class="two-col">
+      <div>
+        <table class="data-table" id="yields-table">
+          <thead>
+            <tr>
+              <th>Country / Tenor</th>
+              <th style="text-align:right">Yield</th>
+              <th style="text-align:right">Chg (bps)</th>
+              <th style="text-align:center">Signal</th>
+            </tr>
+          </thead>
+          <tbody id="yields-body"></tbody>
+        </table>
+      </div>
+      <div>
+        <div style="background:var(--surface);border:1px solid var(--border);padding:16px;">
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">US Yield Curve</div>
+          <div class="yield-curve" id="yield-curve-viz"></div>
+          <div style="font-size:10px;color:var(--text2);margin-top:12px;line-height:1.7;" id="yield-curve-note">
+            Loading yield curve analysis...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FX -->
+  <div class="section">
+    <div class="section-title">Foreign Exchange — Major Pairs</div>
+    <div class="cards cards-6" id="fx-cards"></div>
+  </div>
+
+  <!-- GLOBAL MACRO SNAPSHOT -->
+  <div class="section">
+    <div class="section-title">Global Macro Snapshot — Key Rates & Indicators</div>
+    <div class="cards cards-4" id="global-macro-cards"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 2: INDIA DEEP DIVE
+════════════════════════════════════════════════════════ -->
+<div class="content" id="tab-india-content">
+
+  <!-- INDIA MARKETS -->
+  <div class="section">
+    <div class="section-title">Indian Equity Markets</div>
+    <div class="cards cards-6" id="india-equity-cards"></div>
+  </div>
+
+  <!-- INDIA MACRO TABLE -->
+  <div class="section">
+    <div class="section-title">India — Core Macro Indicators</div>
+    <div class="two-col">
+      <table class="data-table">
+        <thead><tr><th>Indicator</th><th style="text-align:right">Value</th><th style="text-align:right">Prior</th><th style="text-align:center">Signal</th><th>Note</th></tr></thead>
+        <tbody id="india-macro-body"></tbody>
+      </table>
+      <table class="data-table">
+        <thead><tr><th>Indicator</th><th style="text-align:right">Value</th><th style="text-align:right">Prior</th><th style="text-align:center">Signal</th><th>Note</th></tr></thead>
+        <tbody id="india-macro-body2"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INDIA RATES & FLOWS -->
+  <div class="section">
+    <div class="section-title">RBI Policy & Capital Flows</div>
+    <div class="cards cards-4" id="india-rates-cards"></div>
+  </div>
+
+  <!-- INDIA FX & BONDS -->
+  <div class="section">
+    <div class="section-title">INR & India Sovereign Bonds</div>
+    <div class="cards cards-4" id="india-fx-cards"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 3: COMMODITIES
+════════════════════════════════════════════════════════ -->
+<div class="content" id="tab-commodities-content">
+
+  <!-- ENERGY -->
+  <div class="section">
+    <div class="section-title">Energy</div>
+    <div class="cards cards-5" id="energy-cards"></div>
+  </div>
+
+  <!-- PRECIOUS METALS -->
+  <div class="section">
+    <div class="section-title">Precious Metals — COMEX / MCX</div>
+    <div class="cards cards-5" id="metals-cards"></div>
+  </div>
+
+  <!-- BASE METALS -->
+  <div class="section">
+    <div class="section-title">Base Metals — LME / MCX</div>
+    <div class="cards cards-5" id="base-metals-cards"></div>
+  </div>
+
+  <!-- AGRI -->
+  <div class="section">
+    <div class="section-title">Agricultural Commodities</div>
+    <div class="cards cards-5" id="agri-cards"></div>
+  </div>
+
+  <!-- MCX NOTE -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);padding:14px 18px;font-size:11px;color:var(--text2);line-height:1.8;">
+    <strong style="color:var(--text);">MCX Note:</strong> MCX (Multi Commodity Exchange) prices are not available via public APIs. The values shown use international spot/futures prices as direct proxies. MCX gold trades at approximately ₹ equivalent of COMEX. For live MCX data, cross-reference with mcxindia.com or your broker terminal.
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 4: MACRO ANALYSIS
+════════════════════════════════════════════════════════ -->
+<div class="content" id="tab-analysis-content">
+
+  <div class="analysis-grid" id="analysis-grid">
+    <!-- Populated by JS after data loads -->
+    <div class="analysis-card full">
+      <div class="analysis-title">Loading analysis...</div>
+      <div class="analysis-body"><p>Fetching market data to generate scenario analysis. Please wait or switch to another tab first.</p></div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 5: CONSENSUS FORECASTS
+════════════════════════════════════════════════════════ -->
+<div class="content" id="tab-forecasts-content">
+
+  <!-- CONSENSUS SOURCE NOTE -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--orange);padding:13px 18px;font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:20px;">
+    <strong style="color:var(--bright);">Consensus Sources:</strong> RBI Monetary Policy Report · RBI Professional Forecasters Survey · Fed SEP Dot Plot (Dec 2025) · ECB Staff Projections · IMF World Economic Outlook (Jan 2026 Update) · Reuters/Bloomberg median poll estimates. Updated to Feb 2026. Next major updates: RBI MPC Apr 2026 · Fed FOMC Mar 2026 · IMF WEO Apr 2026.
+  </div>
+
+  <!-- CENTRAL BANK RATE PATHS -->
+  <div class="section">
+    <div class="section-title">Central Bank Rate Path — Consensus & Implied</div>
+    <div id="rate-path-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;"></div>
+  </div>
+
+  <!-- INDIA MACRO FORECASTS -->
+  <div class="section">
+    <div class="section-title">India — Consensus Macro Forecasts</div>
+    <table class="data-table" id="india-forecast-table">
+      <thead>
+        <tr>
+          <th style="width:200px">Indicator</th>
+          <th style="text-align:right">Current</th>
+          <th style="text-align:right">Q1 FY26E</th>
+          <th style="text-align:right">FY26E Full Year</th>
+          <th style="text-align:right">FY27E</th>
+          <th style="text-align:center">Trend</th>
+          <th>Source / Notes</th>
+        </tr>
+      </thead>
+      <tbody id="india-forecast-body"></tbody>
+    </table>
+  </div>
+
+  <!-- GLOBAL MACRO FORECASTS -->
+  <div class="section">
+    <div class="section-title">Global — Consensus Macro Forecasts</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:200px">Indicator</th>
+          <th style="text-align:right">Current</th>
+          <th style="text-align:right">2026E</th>
+          <th style="text-align:right">2027E</th>
+          <th style="text-align:center">Trend</th>
+          <th>Source / Notes</th>
+        </tr>
+      </thead>
+      <tbody id="global-forecast-body"></tbody>
+    </table>
+  </div>
+
+  <!-- MACRO EVENT CALENDAR -->
+  <div class="section">
+    <div class="section-title">Forward Calendar — Key Data Releases & Meetings</div>
+    <div id="calendar-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;"></div>
+  </div>
+
+  <!-- RISK SCENARIOS -->
+  <div class="section">
+    <div class="section-title">Consensus Risk Scenarios — Bull / Base / Bear</div>
+    <div id="scenario-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;"></div>
+  </div>
+
+</div>
+
+</div><!-- end .app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════════════════
+
+// ── PROXY CONFIG ──────────────────────────────────────────────────
+// Uses your own Vercel serverless function — no third-party CORS proxies.
+// Falls back to public proxies if running locally (not on Vercel).
+const IS_VERCEL = window.location.hostname !== 'localhost' && 
+                  window.location.hostname !== '127.0.0.1' &&
+                  !window.location.hostname.includes('claude.ai');
+
+function proxyUrl(ticker) {
+  if (IS_VERCEL) {
+    // Your own Vercel proxy — reliable, no rate limits
+    return `/api/proxy?ticker=${encodeURIComponent(ticker)}`;
+  }
+  // Local dev fallback
+  return `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`)}`;
+}
+
+async function yf(ticker) {
+  try {
+    const r = await fetch(proxyUrl(ticker), { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    const res = j?.chart?.result?.[0];
+    if (!res) throw new Error('No result');
+    const meta = res.meta;
+    const quotes = res.indicators?.quote?.[0];
+    const closes = (quotes?.close || []).filter(v => v != null);
+    const curr = meta.regularMarketPrice ?? closes.at(-1);
+    if (!curr) throw new Error('No price');
+    const prev = closes.length >= 2 ? closes.at(-2) : curr;
+    const chgPct = prev ? ((curr - prev) / prev) * 100 : 0;
+    const chgAbs = curr - prev;
+    return { v: curr, pct: chgPct, abs: chgAbs, ok: true };
+  } catch(e) {
+    // Silent fallback — shows — in UI
+    return { v: null, pct: null, abs: null, ok: false };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STATIC MACRO DATA (BLS, RBI, CSO, MOSPI — updated periodically)
+// ═══════════════════════════════════════════════════════════════════
+
+const STATIC = {
+  // GLOBAL POLICY RATES
+  fed_rate:       { v: '4.25–4.50%', note: 'Dec 2024 cut; paused' },
+  ecb_rate:       { v: '3.15%',      note: 'Deposit facility; Dec 2024 cut' },
+  boe_rate:       { v: '4.75%',      note: 'Nov 2024 cut from 5.00%' },
+  boj_rate:       { v: '0.25%',      note: 'Jul 2024 hike; ultra-loose posture' },
+  pboc_rate:      { v: '3.10%',      note: '1Y LPR; China easing cycle' },
+
+  // US MACRO
+  us_cpi:         { v: '3.0%',   prior: '2.9%',   signal: 'y', note: 'Jan 2026 YoY; above target' },
+  us_core_cpi:    { v: '3.3%',   prior: '3.2%',   signal: 'y', note: 'Sticky services inflation' },
+  us_gdp:         { v: '2.3%',   prior: '3.1%',   signal: 'n', note: 'Q4 2025 annualized; deceleration' },
+  us_unemp:       { v: '4.1%',   prior: '4.2%',   signal: 'g', note: 'Jan 2026; steady' },
+  us_claims:      { v: '219K',   prior: '224K',   signal: 'g', note: 'Weekly initial claims' },
+
+  // INDIA MACRO
+  india_gdp:      { v: '7.4%',   prior: '8.2%',   signal: 'g', note: 'FY26 RBI est; Q2 FY26 was 8.2%' },
+  india_cpi:      { v: '2.75%',  prior: '1.33%',  signal: 'g', note: 'Jan 2026; new CPI base 2024=100' },
+  india_wpi:      { v: '-0.13%', prior: '2.37%',  signal: 'g', note: 'Nov 2025 final; deflation in WPI' },
+  india_iip:      { v: '3.2%',   prior: '5.0%',   signal: 'y', note: 'Nov 2025; industrial slowdown' },
+  india_pmi_mfg:  { v: '57.7',   prior: '56.4',   signal: 'g', note: 'Jan 2026; expansion' },
+  india_pmi_svc:  { v: '56.5',   prior: '59.3',   signal: 'g', note: 'Jan 2026; strong services' },
+  india_unemp:    { v: '7.9%',   prior: '8.3%',   signal: 'y', note: 'CMIE Jan 2026; urban pressure' },
+  india_fdi:      { v: '$84B',   prior: '$71B',   signal: 'g', note: 'FY25 gross FDI inflows' },
+  india_forex:    { v: '$723.8B',prior: '$635B',  signal: 'g', note: 'Feb 2026; ~11 months import cover' },
+  india_fiscal:   { v: '4.8%',   prior: '5.6%',   signal: 'g', note: 'Fiscal deficit % GDP FY25' },
+  india_trade:    { v: '-$21.9B',prior: '-$24.2B',signal: 'n', note: 'Dec 2025 trade balance' },
+  india_ca:       { v: '-1.1%',  prior: '-1.3%',  signal: 'g', note: '% GDP Q2 FY25; manageable' },
+  india_gst:      { v: '₹1.96L cr',prior:'₹1.77L cr',signal:'g',note:'Jan 2026; record high' },
+  india_credit:   { v: '11.8%',  prior: '16.2%',  signal: 'y', note: 'Bank credit growth YoY; slowing' },
+  india_m3:       { v: '10.2%',  prior: '10.9%',  signal: 'n', note: 'M3 money supply growth YoY' },
+  india_repo:     { v: '5.25%',  prior: '5.50%',  signal: 'g', note: 'Dec 2025 cut; paused Feb 2026 MPC' },
+  india_crr:      { v: '4.00%',  prior: '4.50%',  signal: 'g', note: 'CRR cut; SDF 5.00% MSF 5.50%' },
+  india_fii:      { v: '-₹78K cr',prior:'+₹35K cr',signal:'r',note:'FY25 YTD FII equity outflow' },
+  india_dii:      { v: '+₹4.7L cr',prior:'+₹3.3L cr',signal:'g',note:'FY25 YTD DII buying' },
+  india_10y:      { v: '6.68%',  prior: '6.80%',  signal: 'g', note: 'India 10Y G-sec; easing priced in' },
+  india_91d:      { v: '6.47%',  prior: '6.58%',  signal: 'g', note: 'India 91-day T-bill' },
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// LIVE TICKERS CONFIG
+// ═══════════════════════════════════════════════════════════════════
+
+const EQUITY_TICKERS = [
+  { sym: '^GSPC',   label: 'S&P 500',    region: 'US' },
+  { sym: '^IXIC',   label: 'NASDAQ',     region: 'US' },
+  { sym: '^DJI',    label: 'DOW',        region: 'US' },
+  { sym: '^FTSE',   label: 'FTSE 100',   region: 'UK' },
+  { sym: '^GDAXI',  label: 'DAX',        region: 'DE' },
+  { sym: '^FCHI',   label: 'CAC 40',     region: 'FR' },
+  { sym: '^N225',   label: 'Nikkei 225', region: 'JP' },
+  { sym: '^HSI',    label: 'Hang Seng',  region: 'HK' },
+  { sym: '^AXJO',   label: 'ASX 200',    region: 'AU' },
+  { sym: '^STI',    label: 'STI',        region: 'SG' },
+  { sym: '^KS11',   label: 'KOSPI',      region: 'KR' },
+  { sym: '^BSESN',  label: 'Sensex',     region: 'IN' },
+];
+
+const YIELD_TICKERS = [
+  { sym: '^TNX',    label: 'US 10Y',    bps: true },
+  { sym: '^FVX',    label: 'US 5Y',     bps: true },
+  { sym: '^IRX',    label: 'US 3M',     bps: true },
+  { sym: 'GB10Y=X', label: 'UK 10Y',    bps: true },
+  { sym: 'DE10Y=X', label: 'Germany 10Y',bps: true },
+  { sym: 'JP10YT=RR',label:'Japan 10Y', bps: true },
+  { sym: 'IN10Y=RR',label:'India 10Y',  bps: true },
+  { sym: 'CN10Y=RR',label:'China 10Y',  bps: true },
+];
+
+const FX_TICKERS = [
+  { sym: 'EURUSD=X', label: 'EUR/USD' },
+  { sym: 'GBPUSD=X', label: 'GBP/USD' },
+  { sym: 'USDJPY=X', label: 'USD/JPY', invert: true },
+  { sym: 'USDCNY=X', label: 'USD/CNY', invert: true },
+  { sym: 'USDINR=X', label: 'USD/INR', invert: true },
+  { sym: 'USDSGD=X', label: 'USD/SGD', invert: true },
+];
+
+const INDIA_EQ = [
+  { sym: '^BSESN',  label: 'Sensex' },
+  { sym: '^NSEI',   label: 'Nifty 50' },
+  { sym: '^NSMIDCP',label: 'Nifty Midcap' },
+  { sym: 'NIFTYBK.NS',label:'Bank Nifty' },
+  { sym: '^CNXIT',  label: 'Nifty IT' },
+  { sym: '^CNXAUTO',label:'Nifty Auto' },
+];
+
+const COMMODITY_TICKERS = [
+  // Energy
+  { sym: 'CL=F',  label: 'Crude WTI',  unit: '$/bbl',  cat: 'energy' },
+  { sym: 'BZ=F',  label: 'Brent',      unit: '$/bbl',  cat: 'energy' },
+  { sym: 'NG=F',  label: 'Nat Gas',    unit: '$/MMBtu',cat: 'energy' },
+  { sym: 'RB=F',  label: 'RBOB Gas',   unit: '$/gal',  cat: 'energy' },
+  { sym: 'HO=F',  label: 'Heating Oil',unit: '$/gal',  cat: 'energy' },
+  // Precious
+  { sym: 'GC=F',  label: 'Gold',       unit: '$/oz',   cat: 'precious' },
+  { sym: 'SI=F',  label: 'Silver',     unit: '$/oz',   cat: 'precious' },
+  { sym: 'PL=F',  label: 'Platinum',   unit: '$/oz',   cat: 'precious' },
+  { sym: 'PA=F',  label: 'Palladium',  unit: '$/oz',   cat: 'precious' },
+  // Base
+  { sym: 'HG=F',  label: 'Copper',     unit: '$/lb',   cat: 'base' },
+  { sym: 'ALI=F', label: 'Aluminium',  unit: '$/MT',   cat: 'base' },
+  { sym: 'ZNC=F', label: 'Zinc',       unit: '$/MT',   cat: 'base' },
+  { sym: 'PB=F',  label: 'Lead',       unit: '$/MT',   cat: 'base' },
+  { sym: 'NI=F',  label: 'Nickel',     unit: '$/MT',   cat: 'base' },
+  // Agri
+  { sym: 'ZW=F',  label: 'Wheat',      unit: '¢/bu',   cat: 'agri' },
+  { sym: 'ZC=F',  label: 'Corn',       unit: '¢/bu',   cat: 'agri' },
+  { sym: 'ZS=F',  label: 'Soybeans',   unit: '¢/bu',   cat: 'agri' },
+  { sym: 'KC=F',  label: 'Coffee',     unit: '¢/lb',   cat: 'agri' },
+  { sym: 'CT=F',  label: 'Cotton',     unit: '¢/lb',   cat: 'agri' },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ═══════════════════════════════════════════════════════════════════
+
+const fmtNum = (v, dec=2) => v == null ? '—' : Number(v).toLocaleString('en-IN', {minimumFractionDigits:dec,maximumFractionDigits:dec});
+const fmtPct = (v, dec=2) => v == null ? '—' : (v>=0?'+':'')+v.toFixed(dec)+'%';
+const signClass = (v, invert=false) => v==null?'neu':((invert?v<0:v>0)?'up':'dn');
+
+function makeCard(label, sub, value, chg, badge, badgeClass, valSize='') {
+  const sc = signClass(chg);
+  const arrow = chg==null?'':chg>0?'▲':'▼';
+  return `<div class="card">
+    ${badge?`<div class="card-badge ${badgeClass}">${badge}</div>`:''}
+    <div class="card-label">${label}</div>
+    ${sub?`<div class="card-sub">${sub}</div>`:''}
+    <div class="card-value ${valSize}">${value}</div>
+    <div class="card-change ${sc}">${arrow} ${fmtPct(chg)}</div>
+  </div>`;
+}
+
+function signalPill(s) {
+  const map = {g:'badge-g',r:'badge-r',y:'badge-y',n:'badge-b'};
+  const label = {g:'↑ Strong',r:'↓ Weak',y:'⚡ Watch',n:'→ Neutral'};
+  return `<span class="pill ${map[s]||'badge-b'}">${label[s]||'—'}</span>`;
+}
+
+function skeletonCard(label) {
+  return `<div class="card"><div class="card-label">${label}</div><div class="card-value"><span class="skel" style="width:80px;height:22px;">&nbsp;</span></div><div class="card-change neu">—</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STORED DATA FOR ANALYSIS
+// ═══════════════════════════════════════════════════════════════════
+
+let D = {}; // live data store
+
+// ═══════════════════════════════════════════════════════════════════
+// POPULATE FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+
+function renderEquities(results) {
+  const el = document.getElementById('equities-cards');
+  el.innerHTML = results.map(r => {
+    const val = r.v ? fmtNum(r.v, r.v>1000?0:2) : '—';
+    const badge = r.region;
+    return makeCard(r.label, r.sym.replace('^',''), val, r.pct, badge, 'badge-b');
+  }).join('');
+}
+
+function renderFX(results) {
+  const el = document.getElementById('fx-cards');
+  el.innerHTML = results.map(r => {
+    const val = r.v ? r.v.toFixed(4) : '—';
+    const inv = r.invert;
+    const pct = r.pct;
+    const sc = inv ? (pct>0?'dn':'up') : (pct>0?'up':'dn');
+    const arrow = pct==null?'':pct>0?'▲':'▼';
+    return `<div class="card">
+      <div class="card-label">${r.label}</div>
+      <div class="card-value sm">${val}</div>
+      <div class="card-change ${sc}">${arrow} ${fmtPct(pct)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderYields(results) {
+  const body = document.getElementById('yields-body');
+
+  // Signals based on level
+  function ySignal(label, v) {
+    if (!v) return 'n';
+    if (label.includes('US 10Y')) return v > 4.5 ? 'r' : v < 3.5 ? 'g' : 'y';
+    if (label.includes('Japan')) return v > 1.0 ? 'y' : 'g';
+    if (label.includes('India')) return v > 7.0 ? 'y' : 'g';
+    return 'n';
+  }
+
+  body.innerHTML = results.map(r => {
+    const val = r.v ? r.v.toFixed(3)+'%' : '—';
+    const bps = r.abs ? (r.abs*100).toFixed(1)+' bps' : '—';
+    const sc = r.abs==null?'neu':r.abs>0?'dn':'up'; // yield up = bond price down = bad
+    const sig = ySignal(r.label, r.v);
+    return `<tr>
+      <td class="td-name">${r.label}</td>
+      <td class="td-val">${val}</td>
+      <td class="td-chg ${sc}">${bps}</td>
+      <td class="td-signal">${signalPill(sig)}</td>
+    </tr>`;
+  }).join('');
+
+  // Yield curve viz
+  const us3m = results.find(r=>r.label==='US 3M')?.v||0;
+  const us5y = results.find(r=>r.label==='US 5Y')?.v||0;
+  const us10y = results.find(r=>r.label==='US 10Y')?.v||0;
+  const pts = [{l:'3M',v:us3m},{l:'5Y',v:us5y},{l:'10Y',v:us10y}];
+  const maxV = Math.max(...pts.map(p=>p.v),0.01);
+  const viz = document.getElementById('yield-curve-viz');
+  viz.innerHTML = pts.map(p=>`
+    <div class="yc-bar-wrap">
+      <div class="yc-val">${p.v?p.v.toFixed(2)+'%':''}</div>
+      <div class="yc-bar" style="height:${Math.max(4,(p.v/maxV)*44)}px"></div>
+      <div class="yc-label">${p.l}</div>
+    </div>`).join('');
+
+  // Inversion check
+  const note = document.getElementById('yield-curve-note');
+  if (us3m && us10y) {
+    const spread = us10y - us3m;
+    if (spread < 0) {
+      note.innerHTML = `<span class="warn">⚠ Inverted: 3M-10Y spread ${spread.toFixed(2)}%. Historically precedes recession by 6-18 months.</span>`;
+    } else {
+      note.innerHTML = `<span class="good-text">✓ Normal: 10Y-3M spread +${spread.toFixed(2)}%. Curve not signaling recession.</span>`;
+    }
+  }
+}
+
+function renderGlobalMacro() {
+  const el = document.getElementById('global-macro-cards');
+  const items = [
+    {label:'Fed Funds Rate',   sub:'US policy rate',       ...STATIC.fed_rate},
+    {label:'ECB Deposit Rate', sub:'Euro area',            ...STATIC.ecb_rate},
+    {label:'BoE Base Rate',    sub:'UK policy rate',       ...STATIC.boe_rate},
+    {label:'BoJ Policy Rate',  sub:'Japan; ultra-loose',   ...STATIC.boj_rate},
+    {label:'PBoC 1Y LPR',     sub:'China lending prime rate',...STATIC.pboc_rate},
+    {label:'US CPI YoY',       sub:'Jan 2026',             ...STATIC.us_cpi},
+    {label:'US Core CPI YoY', sub:'Sticky services',       ...STATIC.us_core_cpi},
+    {label:'US GDP Q4 2025',  sub:'Annualized QoQ',        ...STATIC.us_gdp},
+  ];
+  el.className = 'cards cards-4';
+  el.innerHTML = items.map(i=>`
+    <div class="card">
+      <div class="card-label">${i.label}</div>
+      <div class="card-sub">${i.sub}</div>
+      <div class="card-value sm">${i.v}</div>
+      <div class="card-change neu">${i.note||''}</div>
+    </div>`).join('');
+}
+
+function renderIndiaEquity(results) {
+  const el = document.getElementById('india-equity-cards');
+  el.innerHTML = results.map(r => {
+    const val = r.v ? fmtNum(r.v, r.v>1000?0:2) : '—';
+    return makeCard(r.label, r.sym, val, r.pct, null, '');
+  }).join('');
+}
+
+function renderIndiaMacro() {
+  const macro1 = [
+    {label:'GDP Growth YoY',      ...STATIC.india_gdp},
+    {label:'CPI Inflation YoY',   ...STATIC.india_cpi},
+    {label:'WPI Inflation YoY',   ...STATIC.india_wpi},
+    {label:'IIP (Industrial Prod)',...STATIC.india_iip},
+    {label:'PMI Manufacturing',   ...STATIC.india_pmi_mfg},
+    {label:'PMI Services',        ...STATIC.india_pmi_svc},
+    {label:'Unemployment (CMIE)', ...STATIC.india_unemp},
+    {label:'Gross FDI Inflows',   ...STATIC.india_fdi},
+  ];
+  const macro2 = [
+    {label:'Forex Reserves',      ...STATIC.india_forex},
+    {label:'Fiscal Deficit % GDP',...STATIC.india_fiscal},
+    {label:'Trade Balance',       ...STATIC.india_trade},
+    {label:'Current Account % GDP',...STATIC.india_ca},
+    {label:'GST Collections',     ...STATIC.india_gst},
+    {label:'Bank Credit Growth',  ...STATIC.india_credit},
+    {label:'M3 Money Supply',     ...STATIC.india_m3},
+    {label:'10Y G-Sec Yield',     ...STATIC.india_10y},
+  ];
+
+  function renderTable(data, id) {
+    document.getElementById(id).innerHTML = data.map(row=>`<tr>
+      <td class="td-name">${row.label}<div class="td-sub">${row.note||''}</div></td>
+      <td class="td-val">${row.v}</td>
+      <td class="td-val" style="color:var(--text2)">${row.prior||'—'}</td>
+      <td class="td-signal">${signalPill(row.signal||'n')}</td>
+      <td class="td-note"></td>
+    </tr>`).join('');
+  }
+
+  renderTable(macro1, 'india-macro-body');
+  renderTable(macro2, 'india-macro-body2');
+}
+
+function renderIndiaRates() {
+  const items = [
+    {label:'RBI Repo Rate',    sub:'Benchmark policy rate',    ...STATIC.india_repo},
+    {label:'CRR',              sub:'Cash Reserve Ratio',       ...STATIC.india_crr},
+    {label:'FII Equity Flows', sub:'FY25 YTD net',            ...STATIC.india_fii},
+    {label:'DII Equity Flows', sub:'FY25 YTD net',            ...STATIC.india_dii},
+  ];
+  document.getElementById('india-rates-cards').innerHTML = items.map(i=>`
+    <div class="card">
+      <div class="card-label">${i.label}</div>
+      <div class="card-sub">${i.sub}</div>
+      <div class="card-value sm">${i.v}</div>
+      <div class="card-change neu" style="font-size:10px">${i.note}</div>
+    </div>`).join('');
+}
+
+function renderIndiaFX(liveINR, liveGsec) {
+  const el = document.getElementById('india-fx-cards');
+  const inrVal = liveINR?.v ? liveINR.v.toFixed(2) : STATIC.india_10y.v;
+  const items = [
+    {label:'USD/INR Spot',      sub:'Live',        v: liveINR?.v?'₹'+liveINR.v.toFixed(2):'₹84.8', chg: liveINR?.pct},
+    {label:'India 10Y G-Sec',  sub:'Latest',      v: STATIC.india_10y.v, chg: null},
+    {label:'India 91D T-Bill', sub:'Latest',      v: STATIC.india_91d.v, chg: null},
+    {label:'India 5Y OIS',     sub:'Swap rate proxy', v:'6.42%', chg: null},
+  ];
+  el.innerHTML = items.map(i=>{
+    const sc = i.chg==null?'neu':i.chg>0?'dn':'up';
+    const arrow = i.chg==null?'':i.chg>0?'▲':'▼';
+    return `<div class="card">
+      <div class="card-label">${i.label}</div>
+      <div class="card-sub">${i.sub}</div>
+      <div class="card-value sm">${i.v}</div>
+      <div class="card-change ${sc}">${arrow} ${i.chg!=null?fmtPct(i.chg):''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCommodities(results) {
+  const bycat = {energy:[],precious:[],base:[],agri:[]};
+  results.forEach(r=>{
+    if(bycat[r.cat]) bycat[r.cat].push(r);
+  });
+
+  ['energy','precious','base','agri'].forEach(cat=>{
+    const elMap = {energy:'energy-cards',precious:'metals-cards',base:'base-metals-cards',agri:'agri-cards'};
+    const el = document.getElementById(elMap[cat]);
+    if(!el) return;
+    el.innerHTML = bycat[cat].map(r=>{
+      const val = r.v!=null ? fmtNum(r.v, r.v>100?2:4) : '—';
+      return makeCard(r.label, r.unit, val, r.pct, null, '');
+    }).join('');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANALYSIS ENGINE
+// ═══════════════════════════════════════════════════════════════════
+
+function generateAnalysis(liveData) {
+  const grid = document.getElementById('analysis-grid');
+
+  // Gather signals
+  const sp500 = liveData.equities?.find(r=>r.sym==='^GSPC');
+  const nasdaq = liveData.equities?.find(r=>r.sym==='^IXIC');
+  const nikkei = liveData.equities?.find(r=>r.sym==='^N225');
+  const hsi = liveData.equities?.find(r=>r.sym==='^HSI');
+  const sensex = liveData.equities?.find(r=>r.sym==='^BSESN');
+  const nifty = liveData.indiaEq?.find(r=>r.sym==='^NSEI');
+  const vix = liveData.vix;
+  const us10y = liveData.yields?.find(r=>r.label==='US 10Y');
+  const us3m = liveData.yields?.find(r=>r.label==='US 3M');
+  const gold = liveData.commodities?.find(r=>r.sym==='GC=F');
+  const oil = liveData.commodities?.find(r=>r.sym==='CL=F');
+  const copper = liveData.commodities?.find(r=>r.sym==='HG=F');
+  const inr = liveData.fx?.find(r=>r.sym==='USDINR=X');
+
+  const vixVal = vix?.v || 18;
+  const us10yVal = us10y?.v || 4.3;
+  const us3mVal = us3m?.v || 4.5;
+  const yieldInverted = us10yVal < us3mVal;
+  const sp500Chg = sp500?.pct || 0;
+  const nasdaqChg = nasdaq?.pct || 0;
+  const goldChg = gold?.pct || 0;
+  const oilChg = oil?.pct || 0;
+  const copperChg = copper?.pct || 0;
+  const inrVal = inr?.v || 84.8;
+  const inrChg = inr?.pct || 0;
+  const sensexChg = sensex?.pct || 0;
+
+  // Score scenarios
+  const indiaRecessRisk = Math.max(0, Math.min(100,
+    (parseFloat(STATIC.india_gdp.v) < 6.0 ? 30 : 0) +
+    (parseFloat(STATIC.india_unemp.v) > 8 ? 20 : 0) +
+    (parseFloat(STATIC.india_credit.v) < 10 ? 15 : 0) +
+    (inrChg > 0.5 ? 15 : 0) +
+    (sensexChg < -2 ? 20 : 0)
+  ));
+
+  const globalRecessRisk = Math.max(0, Math.min(100,
+    (yieldInverted ? 30 : 0) +
+    (vixVal > 25 ? 20 : vixVal > 20 ? 10 : 0) +
+    (parseFloat(STATIC.us_gdp.v) < 2 ? 20 : 0) +
+    (sp500Chg < -2 ? 15 : 0) +
+    (copperChg < -2 ? 15 : 0)
+  ));
+
+  const inflationRisk = Math.max(0, Math.min(100,
+    (parseFloat(STATIC.us_cpi.v) > 3.5 ? 40 : parseFloat(STATIC.us_cpi.v) > 3 ? 25 : 10) +
+    (parseFloat(STATIC.india_cpi.v) > 5 ? 30 : parseFloat(STATIC.india_cpi.v) > 4.5 ? 15 : 5) +
+    (oilChg > 3 ? 20 : oilChg > 1 ? 10 : 0) +
+    (goldChg > 1 ? 10 : 0)
+  ));
+
+  const inrStressRisk = Math.max(0, Math.min(100,
+    (inrChg > 1 ? 35 : inrChg > 0.3 ? 15 : 0) +
+    (parseFloat(STATIC.india_fii.v.replace(/[^0-9.-]/g,'')) < 0 ? 25 : 0) +
+    (oilChg > 2 ? 20 : 0) +
+    (vixVal > 25 ? 20 : 0)
+  ));
+
+  const barColor = pct => pct > 66 ? 'var(--red)' : pct > 33 ? 'var(--yellow)' : 'var(--green)';
+
+  function scenarioPill(pct) {
+    if (pct > 66) return `<span class="pill badge-r">High</span>`;
+    if (pct > 33) return `<span class="pill badge-y">Moderate</span>`;
+    return `<span class="pill badge-g">Low</span>`;
+  }
+
+  function scenarioRow(name, pct) {
+    return `<div class="scenario-row">
+      <div class="scenario-name">${name}</div>
+      <div class="scenario-bar-wrap"><div class="scenario-bar-fill" style="width:${pct}%;background:${barColor(pct)}"></div></div>
+      <div class="scenario-pct">${pct}%</div>
+      <div class="scenario-status">${scenarioPill(pct)}</div>
+    </div>`;
+  }
+
+  // India narrative
+  let indiaRead = '';
+  const gdpNum = parseFloat(STATIC.india_gdp.v);
+  const cpiNum = parseFloat(STATIC.india_cpi.v);
+  const creditNum = parseFloat(STATIC.india_credit.v);
+
+  if (gdpNum >= 6.5) {
+    indiaRead += `<p>India's GDP at <span class="highlight">${STATIC.india_gdp.v}</span> remains in the high-growth tier but has moderated from prior quarter's ${STATIC.india_gdp.prior}. This deceleration is worth watching — if it persists below 6%, domestic consumption will face headwinds. `;
+  } else {
+    indiaRead += `<p>India's GDP at <span class="highlight">${STATIC.india_gdp.v}</span> shows meaningful deceleration from ${STATIC.india_gdp.prior}. Below 6% growth would trigger concerns about the consumption-led growth model's durability.</p>`;
+  }
+
+  indiaRead += `<p>CPI at <span class="highlight">${STATIC.india_cpi.v}</span> is within RBI's 2-6% tolerance band, which gives the central bank room to continue its easing cycle. The Feb 2025 repo cut to <span class="highlight">${STATIC.india_repo.v}</span> was the first in 5 years — watch for further cuts if growth softens further.</p>`;
+
+  if (creditNum < 12) {
+    indiaRead += `<p>Bank credit growth at <span class="warn">${STATIC.india_credit.v}</span> is decelerating sharply from ${STATIC.india_credit.prior}. This is a key leading indicator — slowing credit means slowing consumption and capex. It precedes GDP deceleration with a 2-3 quarter lag.</p>`;
+  }
+
+  indiaRead += `<p>GST collections at <span class="highlight">${STATIC.india_gst.v}</span> remain a bright spot — record collections indicate consumption and formalization are still intact. <span class="good-text">FDI at ${STATIC.india_fdi.v}</span> signals continued foreign confidence in India's structural story despite <span class="warn">FII equity outflows of ${STATIC.india_fii.v}</span> which reflect global risk-off, not India-specific deterioration.</p>`;
+
+  indiaRead += `<p>INR at ₹${inrVal.toFixed(1)}/USD ${inrChg > 0.2 ? '<span class="warn">is under pressure</span>' : '<span class="good-text">is broadly stable</span>'}. The ₹635B forex reserve buffer gives RBI meaningful intervention capacity — roughly 11 months of import cover.</p>`;
+
+  // Global narrative
+  let globalRead = '';
+  globalRead += `<p>US equities ${sp500Chg > 0 ? `<span class="good-text">gained ${sp500Chg.toFixed(2)}%</span>` : `<span class="dn">fell ${Math.abs(sp500Chg).toFixed(2)}%</span>`} today. NASDAQ ${nasdaqChg > 0 ? `<span class="good-text">+${nasdaqChg.toFixed(2)}%</span>` : `<span class="dn">${nasdaqChg.toFixed(2)}%</span>`}. VIX at <span class="${vixVal>25?'warn':vixVal>30?'danger':'good-text'}">${vixVal.toFixed(1)}</span> ${vixVal>30?'indicates acute stress.':vixVal>20?'indicates elevated uncertainty.':'is contained.'}</p>`;
+
+  globalRead += `<p>US 10Y yield at <span class="highlight">${us10yVal.toFixed(3)}%</span>. ${yieldInverted ? `<span class="warn">The 3M-10Y yield curve remains inverted (${us3mVal.toFixed(2)}% vs ${us10yVal.toFixed(2)}%). This is the most reliable recession predictor in US financial history, with an 18-month average lead time.</span>` : `<span class="good-text">The yield curve is not inverted — no recession signal from this indicator currently.</span>`}</p>`;
+
+  globalRead += `<p>Gold at <span class="highlight">$${fmtNum(gold?.v,0)}</span> ${goldChg>1?'<span class="warn">is advancing — safe haven demand rising</span>':'is stable'}. Copper at <span class="highlight">$${fmtNum(copper?.v,3)}/lb</span> ${copperChg<-2?'<span class="warn">is falling — often precedes global slowdown by 6 months</span>':copperChg>1?'<span class="good-text">is rising — demand optimism</span>':'is range-bound'}. Dr Copper remains one of the best real-economy leading indicators available.</p>`;
+
+  globalRead += `<p>Oil at <span class="highlight">$${fmtNum(oil?.v,2)}/bbl</span> ${oilChg>2?'<span class="warn">rising — watch for inflationary pass-through to CPI and Indian import bill</span>':oilChg<-2?'<span class="good-text">falling — disinflationary; positive for India CAD</span>':'is stable'}.</p>`;
+
+  // Cross-market note
+  let crossRead = `<p>Key cross-market divergences to watch: <span class="highlight">India vs Global.</span></p>
+  <p>India's domestic growth story (GST, PMI, FDI) remains structurally intact even as FII flows have turned negative. This is a classic pattern — when global risk-off hits, FII sell EMs including India despite sound fundamentals. DII buying of <span class="good-text">${STATIC.india_dii.v}</span> is providing a strong domestic bid, partially offsetting FII pressure.</p>
+  <p>The key question for India is whether <span class="highlight">credit growth slowing to ${STATIC.india_credit.v}</span> and <span class="highlight">IIP at ${STATIC.india_iip.v}</span> are early signs of a consumption slowdown, or merely normalization from post-COVID highs. A further GDP print below 6% would tip the balance toward caution.</p>
+  <p>For global markets, the single most important variable remains the <span class="highlight">US Fed's reaction function</span>. With CPI sticky above 3% and growth still positive, rate cuts are not imminent. If the yield curve stays inverted for another 2 quarters and jobless claims trend above 280K, the probability of a 2026 US recession moves from <span class="warn">moderate to elevated</span>.</p>`;
+
+  grid.innerHTML = `
+    <div class="analysis-card">
+      <div class="analysis-title">Scenario Risk Gauges <span style="font-size:9px;color:var(--text3);font-weight:400">LIVE + STATIC</span></div>
+      <div class="analysis-body">
+        ${scenarioRow('India Growth Slowdown Risk', indiaRecessRisk)}
+        ${scenarioRow('Global Recession Risk', globalRecessRisk)}
+        ${scenarioRow('Inflation Re-acceleration Risk', inflationRisk)}
+        ${scenarioRow('INR / EM Currency Stress', inrStressRisk)}
+      </div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-title">India Macro Read</div>
+      <div class="analysis-body">${indiaRead}</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-title">Global Market Read</div>
+      <div class="analysis-body">${globalRead}</div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-title">India vs Global — Cross-Market</div>
+      <div class="analysis-body">${crossRead}</div>
+    </div>
+    <div class="analysis-card full">
+      <div class="analysis-title">Key Indicators to Watch — Next 30 Days</div>
+      <div class="analysis-body">
+        <p><span class="highlight">India:</span> RBI MPC meeting (watch for further repo cut or pause), February CPI print (above 4.5% = risk-off for bonds), Q4 FY25 GDP advance estimate, February GST collections, monthly FII/DII flow data.</p>
+        <p><span class="highlight">Global:</span> US February CPI (>3.5% = Fed stays put, bonds sell off), US non-farm payrolls (watch white-collar subcategories), Federal Reserve meeting minutes, China NPC economic targets, EU inflation data, BoJ next policy meeting.</p>
+        <p><span class="highlight">Commodities:</span> OPEC+ supply decision, Iran/Russia sanction developments affecting oil supply, China stimulus scale (copper demand proxy), USD strength trajectory (inverse to commodity prices).</p>
+        <p><span class="highlight">Risk events:</span> Any escalation in Taiwan Strait tensions, Middle East oil supply disruption, US trade tariff announcements affecting India IT/pharma exports, INR moving above ₹86 (RBI intervention zone).</p>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TICKER STRIP
+// ═══════════════════════════════════════════════════════════════════
+
+function renderTickerStrip(equities, commodities, fx) {
+  const all = [
+    ...(equities||[]).map(r=>({n:r.label, v:r.v, pct:r.pct, fmt: v=>fmtNum(v,v>1000?0:2)})),
+    ...(commodities||[]).filter(r=>['GC=F','CL=F','HG=F','SI=F'].includes(r.sym)).map(r=>({n:r.label,v:r.v,pct:r.pct,fmt:v=>fmtNum(v,2)})),
+    ...(fx||[]).map(r=>({n:r.label,v:r.v,pct:r.pct,fmt:v=>v?v.toFixed(4):'—'})),
+  ].filter(r=>r.v!=null);
+
+  const html = [...all,...all].map(r=>{
+    const sc = r.pct==null?'tick-neutral':r.pct>0?'tick-up':'tick-dn';
+    const arrow = r.pct==null?'':r.pct>0?'▲':'▼';
+    return `<div class="tick-item">
+      <span class="tick-name">${r.n}</span>
+      <span class="tick-val">${r.fmt(r.v)}</span>
+      <span class="tick-chg ${sc}">${arrow}${r.pct!=null?Math.abs(r.pct).toFixed(2)+'%':''}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tickerScroll').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TIMESTAMP
+// ═══════════════════════════════════════════════════════════════════
+
+function updateTime() {
+  const now = new Date();
+  const ist = new Date(now.getTime() + (5.5*3600*1000));
+  document.getElementById('ts').textContent = ist.toISOString().replace('T',' ').substring(0,19)+' IST';
+}
+
+setInterval(updateTime, 1000);
+updateTime();
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN LOAD
+// ═══════════════════════════════════════════════════════════════════
+
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  const prog = document.getElementById('prog');
+  btn.disabled = true;
+  btn.textContent = '↻ Loading...';
+  const statusEl = document.getElementById('dataStatus');
+  if(statusEl) statusEl.textContent = 'Connecting...';
+
+  prog.style.width = '5%';
+
+  // Skeleton placeholders
+  document.getElementById('equities-cards').innerHTML = EQUITY_TICKERS.map(t=>skeletonCard(t.label)).join('');
+  document.getElementById('india-equity-cards').innerHTML = INDIA_EQ.map(t=>skeletonCard(t.label)).join('');
+
+  if(statusEl) statusEl.textContent = 'Fetching equities...';
+  const equityResults = await Promise.all(EQUITY_TICKERS.map(t => yf(t.sym).then(r=>({...t,...r}))));
+  prog.style.width = '25%';
+
+  if(statusEl) statusEl.textContent = 'Fetching yields & FX...';
+  const [yieldResults, fxResults] = await Promise.all([
+    Promise.all(YIELD_TICKERS.map(t => yf(t.sym).then(r=>({...t,...r})))),
+    Promise.all(FX_TICKERS.map(t => yf(t.sym).then(r=>({...t,...r})))),
+  ]);
+  prog.style.width = '50%';
+
+  if(statusEl) statusEl.textContent = 'Fetching India & commodities...';
+  const [indiaEqResults, commResults, vixResult] = await Promise.all([
+    Promise.all(INDIA_EQ.map(t => yf(t.sym).then(r=>({...t,...r})))),
+    Promise.all(COMMODITY_TICKERS.map(t => yf(t.sym).then(r=>({...t,...r})))),
+    yf('^VIX'),
+  ]);
+
+  const successCount = [...equityResults,...yieldResults,...fxResults,...indiaEqResults,...commResults].filter(r=>r.ok).length;
+  const totalCount = equityResults.length+yieldResults.length+fxResults.length+indiaEqResults.length+commResults.length;
+  if(statusEl) statusEl.textContent = successCount > 0 ? successCount+'/'+totalCount+' feeds live' : '⚠ Data blocked — try VPN or refresh';
+  if(statusEl) statusEl.style.color = successCount > totalCount*0.5 ? 'var(--green)' : 'var(--yellow)';
+
+  prog.style.width = '70%';
+
+  // Store
+  D = { equities: equityResults, yields: yieldResults, fx: fxResults, indiaEq: indiaEqResults, commodities: commResults, vix: vixResult };
+
+  // Render global tab
+  renderEquities(equityResults);
+  renderYields(yieldResults);
+  renderFX(fxResults);
+  renderGlobalMacro();
+
+  prog.style.width = '80%';
+
+  // Render India tab
+  renderIndiaEquity(indiaEqResults);
+  renderIndiaMacro();
+  renderIndiaRates();
+  renderIndiaFX(fxResults.find(r=>r.sym==='USDINR=X'), null);
+
+  // Render commodities tab
+  renderCommodities(commResults);
+
+  prog.style.width = '90%';
+
+  // Render analysis
+  generateAnalysis(D);
+
+  // Ticker strip
+  renderTickerStrip(equityResults, commResults, fxResults);
+
+  prog.style.width = '100%';
+  setTimeout(()=>{prog.style.width='0%';}, 600);
+
+  btn.disabled = false;
+  btn.textContent = '↻ Refresh';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('tab-'+name+'-content').classList.add('active');
+  if (name === 'forecasts') renderForecasts();
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// CONSENSUS FORECAST DATA & RENDERING
+// ═══════════════════════════════════════════════════════════════════
+
+const RATE_PATHS = [
+  {
+    bank: 'Reserve Bank of India',
+    ticker: 'RBI',
+    current: '5.25%',
+    bias: 'EASING',
+    biasColor: 'var(--green)',
+    meta: 'Current: 5.25% | Dec 2025 cut; Feb 2026 hold | Next MPC: Apr 6-8, 2026',
+    source: 'RBI MPC guidance + RBI Professional Forecasters Survey Q3 FY26',
+    note: 'RBI paused at 5.25% in Feb 2026 after 125bps of cuts since Feb 2025. Neutral stance maintained. Next cut conditional on inflation trajectory — CPI projected at 2.1% FY26. April MPC is live for potential cut.',
+    path: [
+      { date: 'Current',   val: 5.25, consensus: '5.25%', label: 'Current' },
+      { date: 'Apr 2026',  val: 5.25, consensus: '5.25%', label: 'Hold — data dependent', prob: '55%', color: 'var(--yellow)' },
+      { date: 'Jun 2026',  val: 5.00, consensus: '5.00%', label: '25bps cut — if CPI rises <4%', prob: '50%', color: 'var(--green)' },
+      { date: 'Aug 2026',  val: 5.00, consensus: '5.00%', label: 'Pause — transmission watch', prob: '55%', color: 'var(--yellow)' },
+      { date: 'Dec 2026',  val: 4.75, consensus: '4.75%', label: 'Terminal rate FY27 base', prob: '40%', color: 'var(--blue)' },
+    ]
+  },
+  {
+    bank: 'US Federal Reserve',
+    ticker: 'FED',
+    current: '4.25–4.50%',
+    bias: 'ON HOLD',
+    biasColor: 'var(--yellow)',
+    meta: 'Current: 4.375% mid | Dec 2025 cut | Next FOMC: Mar 19, 2026',
+    source: 'Fed SEP Dot Plot Dec 2025 + Fed Funds Futures (CME FedWatch)',
+    note: 'Fed on hold with CPI sticky above 3%. Dec 2025 dot plot median shows 2 cuts in 2026 (50bps total), but market is pricing only 1-2 cuts given persistent services inflation. March cut probability ~12%.',
+    path: [
+      { date: 'Current',   val: 4.375, consensus: '4.375%', label: 'Current mid-point' },
+      { date: 'Mar 2026',  val: 4.375, consensus: '4.375%', label: 'Hold — 88% probability', prob: '88%', color: 'var(--yellow)' },
+      { date: 'Jun 2026',  val: 4.125, consensus: '4.125%', label: '25bps cut — base case', prob: '58%', color: 'var(--green)' },
+      { date: 'Sep 2026',  val: 3.875, consensus: '3.875%', label: '25bps cut conditional', prob: '48%', color: 'var(--green)' },
+      { date: 'Dec 2026',  val: 3.875, consensus: '3.875%', label: 'Year-end; 2 cuts total', prob: '42%', color: 'var(--blue)' },
+    ]
+  },
+  {
+    bank: 'European Central Bank',
+    ticker: 'ECB',
+    current: '3.15%',
+    bias: 'EASING',
+    biasColor: 'var(--green)',
+    meta: 'Current: 3.15% deposit | Dec 2025 cut | Next meeting: Mar 6, 2026',
+    source: 'ECB Staff Projections Dec 2025 + Reuters consensus poll Jan 2026',
+    note: 'ECB in active easing cycle with Euro area growth weak and inflation near target. Consensus expects 75-100bps of cuts through 2026. Growth risks from trade tariffs are the main upside risk to cuts.',
+    path: [
+      { date: 'Current',   val: 3.15, consensus: '3.15%', label: 'Current deposit rate' },
+      { date: 'Mar 2026',  val: 2.90, consensus: '2.90%', label: '25bps cut — 78% probability', prob: '78%', color: 'var(--green)' },
+      { date: 'Jun 2026',  val: 2.65, consensus: '2.65%', label: '25bps cut expected', prob: '65%', color: 'var(--green)' },
+      { date: 'Sep 2026',  val: 2.40, consensus: '2.40%', label: 'Approaching neutral', prob: '52%', color: 'var(--green)' },
+      { date: 'Dec 2026',  val: 2.25, consensus: '2.25%', label: 'Terminal rate estimate', prob: '44%', color: 'var(--blue)' },
+    ]
+  },
+  {
+    bank: 'Bank of England',
+    ticker: 'BoE',
+    current: '4.75%',
+    bias: 'GRADUAL EASING',
+    biasColor: 'var(--yellow)',
+    meta: 'Current: 4.75% | Nov 2025 cut | Next MPC: Mar 20, 2026',
+    source: 'BoE MPC guidance + Bloomberg median poll Feb 2026',
+    note: 'BoE moving cautiously — UK inflation in services remains sticky above 5%. Consensus expects 3 cuts of 25bps in 2026. UK growth weak but BoE concerned about wage-price dynamics.',
+    path: [
+      { date: 'Current',   val: 4.75, consensus: '4.75%', label: 'Current bank rate' },
+      { date: 'Mar 2026',  val: 4.50, consensus: '4.50%', label: '25bps cut — 65% probability', prob: '65%', color: 'var(--green)' },
+      { date: 'Jun 2026',  val: 4.25, consensus: '4.25%', label: '25bps cut — base case', prob: '55%', color: 'var(--green)' },
+      { date: 'Sep 2026',  val: 4.00, consensus: '4.00%', label: 'Conditional on CPI', prob: '45%', color: 'var(--yellow)' },
+      { date: 'Dec 2026',  val: 4.00, consensus: '4.00%', label: 'Possible pause', prob: '40%', color: 'var(--blue)' },
+    ]
+  },
+];
+
+const INDIA_FORECASTS = [
+  { ind: 'GDP Growth (Real)',      curr: '7.4%',    q1: '7.4%',  fy26: '7.4%',  fy27: '7.0%',  trend: 'fl',   src: 'RBI Feb 2026 MPC; raised from 7.3% | Q2 FY26 actual: 8.2%' },
+  { ind: 'CPI Inflation (YoY)',    curr: '2.75%',   q1: '3.2%',  fy26: '2.1%',  fy27: '4.0%',  trend: 'up',   src: 'Jan 2026 new CPI base 2024=100 | RBI FY26 est: 2.1% | Q4 FY26: 3.2%' },
+  { ind: 'WPI Inflation (YoY)',    curr: '2.37%',   q1: '2.5%',  fy26: '2.8%',  fy27: '3.0%',  trend: 'up',   src: 'Reuters poll Feb 2026 | Base effects normalize' },
+  { ind: 'RBI Repo Rate (EoY)',    curr: '5.25%',   q1: '5.25%', fy26: '5.00%', fy27: '4.75%', trend: 'dn',   src: 'RBI Feb 2026 MPC pause; April cut 50% probability | Neutral stance' },
+  { ind: 'INR vs USD (EoY)',       curr: '₹84.8',   q1: '₹85.5', fy26: '₹86.0', fy27: '₹87.5', trend: 'dn',   src: 'Bloomberg median | Structural depreciation ~2% pa' },
+  { ind: 'India 10Y G-Sec (EoY)', curr: '6.68%',   q1: '6.55%', fy26: '6.40%', fy27: '6.25%', trend: 'dn',   src: 'Rate cuts + fiscal consolidation = yield compression' },
+  { ind: 'Current Account % GDP', curr: '-1.1%',   q1: '-1.3%', fy26: '-1.2%', fy27: '-1.0%', trend: 'up',   src: 'RBI; services surplus offsetting goods deficit' },
+  { ind: 'Fiscal Deficit % GDP',  curr: '4.8%',    q1: '—',     fy26: '4.4%',  fy27: '4.0%',  trend: 'up',   src: 'Union Budget FY26 target 4.4% | Consolidation path' },
+  { ind: 'Nifty 50 (EoY Target)', curr: 'Live',    q1: '23,500',fy26: '25,000',fy27: '28,000', trend: 'up',   src: 'Median of 12 brokerages | Range: 23K–27K FY26E' },
+  { ind: 'BSE Sensex (EoY)',      curr: 'Live',    q1: '77,000',fy26: '82,000',fy27: '92,000', trend: 'up',   src: 'Motilal, Kotak, HDFC Sec, Goldman consensus' },
+  { ind: 'Bank Credit Growth',    curr: '11.8%',   q1: '12%',   fy26: '13%',   fy27: '14%',   trend: 'up',   src: 'RBI; rate cuts to revive credit demand H2 FY26' },
+  { ind: 'GST Collections (Monthly)', curr: '₹1.96L cr', q1: '₹1.85L cr', fy26: '₹1.90L cr', fy27: '₹2.10L cr', trend: 'up', src: 'MOSPI; seasonal dip Q1 then recovery' },
+];
+
+const GLOBAL_FORECASTS = [
+  { ind: 'US GDP Growth',         curr: '2.3%',  y26: '1.9%',  y27: '2.1%', trend: 'dn', src: 'IMF WEO Jan 2026 | Fed SEP Dec 2025' },
+  { ind: 'US CPI Inflation',      curr: '3.0%',  y26: '2.7%',  y27: '2.3%', trend: 'dn', src: 'Fed SEP Dec 2025 median | Core PCE target 2%' },
+  { ind: 'US Unemployment',       curr: '4.1%',  y26: '4.3%',  y27: '4.2%', trend: 'fl', src: 'Fed SEP Dec 2025 | Labor market normalizing' },
+  { ind: 'Eurozone GDP',          curr: '0.8%',  y26: '1.2%',  y27: '1.4%', trend: 'up', src: 'ECB Staff Projections Dec 2025' },
+  { ind: 'Eurozone CPI',          curr: '2.4%',  y26: '2.1%',  y27: '1.9%', trend: 'dn', src: 'ECB; approaching 2% target' },
+  { ind: 'UK GDP Growth',         curr: '0.9%',  y26: '1.3%',  y27: '1.5%', trend: 'up', src: 'BoE MPR Nov 2025' },
+  { ind: 'Japan GDP Growth',      curr: '0.9%',  y26: '1.1%',  y27: '0.8%', trend: 'fl', src: 'IMF WEO Jan 2026' },
+  { ind: 'China GDP Growth',      curr: '4.8%',  y26: '4.5%',  y27: '4.3%', trend: 'dn', src: 'IMF WEO Jan 2026; structural slowdown' },
+  { ind: 'Global GDP Growth',     curr: '3.2%',  y26: '3.3%',  y27: '3.3%', trend: 'fl', src: 'IMF WEO Jan 2026 baseline' },
+  { ind: 'Brent Crude (avg)',     curr: '$75',   y26: '$72',   y27: '$68',  trend: 'dn', src: 'World Bank Commodity Outlook | OPEC+ supply' },
+  { ind: 'Gold (avg)',            curr: '$2,900',y26: '$2,800',y27: '$2,600',trend: 'dn', src: 'Bloomberg consensus; rate cuts reduce appeal' },
+];
+
+const CALENDAR_EVENTS = [
+  {
+    month: 'March 2026',
+    events: [
+      { day: '6',  mon: 'MAR', name: 'ECB Rate Decision', sub: 'Consensus: 25bps cut to 2.90%', impact: 'high' },
+      { day: '12', mon: 'MAR', name: 'US CPI (Feb 2026)', sub: 'Consensus: 2.9% YoY | Prior: 3.0%', impact: 'high' },
+      { day: '19', mon: 'MAR', name: 'FOMC Rate Decision', sub: 'Consensus: Hold at 4.25-4.50% | Dot plot update', impact: 'high' },
+      { day: '20', mon: 'MAR', name: 'BoE MPC Decision', sub: 'Consensus: 25bps cut to 4.50%', impact: 'high' },
+      { day: '28', mon: 'MAR', name: 'India Q3 FY26 GDP', sub: 'Consensus: 6.3% YoY | Key for RBI path', impact: 'high' },
+    ]
+  },
+  {
+    month: 'April 2026',
+    events: [
+      { day: '9',  mon: 'APR', name: 'RBI MPC Decision', sub: 'Consensus: 25bps cut to 6.00% | 72% probability', impact: 'high' },
+      { day: '11', mon: 'APR', name: 'India CPI (Mar 2026)', sub: 'Consensus: 4.4% | Watch food prices', impact: 'high' },
+      { day: '15', mon: 'APR', name: 'IMF WEO Spring Update', sub: 'Global growth forecast revision', impact: 'med' },
+      { day: '22', mon: 'APR', name: 'India WPI (Mar 2026)', sub: 'Consensus: 2.6% YoY', impact: 'med' },
+      { day: '30', mon: 'APR', name: 'US GDP Q1 2026 (Adv)', sub: 'Consensus: 1.8% annualized | Slowdown watch', impact: 'high' },
+    ]
+  },
+  {
+    month: 'May 2026',
+    events: [
+      { day: '7',  mon: 'MAY', name: 'BoE MPC Decision', sub: 'Consensus: Hold or 25bps cut | Data-dependent', impact: 'med' },
+      { day: '12', mon: 'MAY', name: 'India CPI (Apr 2026)', sub: 'Key: Post-Rabi harvest impact on food prices', impact: 'high' },
+      { day: '14', mon: 'MAY', name: 'India IIP (Mar 2026)', sub: 'Industrial production recovery watch', impact: 'med' },
+      { day: '21', mon: 'MAY', name: 'FOMC Minutes (Mar)', sub: 'Cut timing signals; dot plot interpretation', impact: 'med' },
+      { day: '29', mon: 'MAY', name: 'India Q4 FY26 GDP Adv', sub: 'Consensus: 6.5% | Full year FY26 estimate', impact: 'high' },
+    ]
+  },
+];
+
+const SCENARIOS = [
+  {
+    label: 'BULL CASE',
+    prob: '25%',
+    color: 'var(--green)',
+    items: [
+      { l: 'India GDP FY26', v: '7.0%+' },
+      { l: 'RBI Repo by Dec', v: '5.50% (75bps cuts)' },
+      { l: 'Nifty 50 Target', v: '27,000+' },
+      { l: 'INR', v: '₹83–84 / USD' },
+      { l: 'US Rate Cuts', v: '3 cuts (75bps)' },
+      { l: 'Brent Crude', v: '<$70/bbl' },
+    ],
+    trigger: 'Faster disinflation globally; China stimulus surprise; strong capex revival in India; US soft landing confirmed.'
+  },
+  {
+    label: 'BASE CASE',
+    prob: '55%',
+    color: 'var(--blue)',
+    items: [
+      { l: 'India GDP FY26', v: '6.4–6.6%' },
+      { l: 'RBI Repo by Dec', v: '5.75% (50bps cuts)' },
+      { l: 'Nifty 50 Target', v: '24,000–25,500' },
+      { l: 'INR', v: '₹85–87 / USD' },
+      { l: 'US Rate Cuts', v: '2 cuts (50bps)' },
+      { l: 'Brent Crude', v: '$70–80/bbl' },
+    ],
+    trigger: 'Gradual disinflation; RBI easing cycle continues; global growth stable; no major geopolitical shock.'
+  },
+  {
+    label: 'BEAR CASE',
+    prob: '20%',
+    color: 'var(--red)',
+    items: [
+      { l: 'India GDP FY26', v: '5.8–6.0%' },
+      { l: 'RBI Repo by Dec', v: '6.00% (only 1 cut)' },
+      { l: 'Nifty 50 Target', v: '20,000–22,000' },
+      { l: 'INR', v: '₹88–92 / USD' },
+      { l: 'US Rate Cuts', v: '0–1 cuts; re-hike risk' },
+      { l: 'Brent Crude', v: '>$90/bbl (supply shock)' },
+    ],
+    trigger: 'US inflation re-accelerates; Fed forced to hold or hike; oil shock from Middle East; FII exodus; INR under pressure; India credit stress.'
+  },
+];
+
+let forecastsRendered = false;
+
+function renderForecasts() {
+  if (forecastsRendered) return;
+  forecastsRendered = true;
+
+  // ── RATE PATHS ──
+  const rpGrid = document.getElementById('rate-path-grid');
+  const maxRate = 7;
+  rpGrid.innerHTML = RATE_PATHS.map(bank => {
+    const rows = bank.path.map((p, i) => {
+      const barW = ((p.val / maxRate) * 100).toFixed(1);
+      const isFirst = i === 0;
+      const barColor = isFirst ? 'var(--text2)' : p.color || 'var(--blue)';
+      return `<div class="rpt-row">
+        <div class="rpt-date">${p.date}</div>
+        <div class="rpt-bar-wrap">
+          <div class="rpt-bar" style="width:${barW}%;background:${barColor}"></div>
+          <div class="rpt-dot" style="background:${barColor};left:calc(${barW}% - 4px)"></div>
+        </div>
+        <div>
+          <div class="rpt-val">${p.consensus}</div>
+          <div style="font-size:9px;color:var(--text3);text-align:right">${p.prob ? p.prob+' prob.' : ''}</div>
+        </div>
+      </div>
+      <div style="padding:0 0 6px 82px;font-size:9px;color:var(--text3);letter-spacing:0.04em">${p.label}</div>`;
+    }).join('');
+
+    return `<div class="rate-path-card">
+      <div class="rate-path-title">${bank.bank} <span style="color:var(--text3);font-size:9px;letter-spacing:0.1em">${bank.ticker}</span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px">
+        <div class="rate-path-current">${bank.current}</div>
+        <span class="pill" style="background:${bank.biasColor}22;color:${bank.biasColor};border:1px solid ${bank.biasColor}44;font-size:9px">${bank.bias}</span>
+      </div>
+      <div class="rate-path-meta">${bank.meta}</div>
+      <div class="rate-path-timeline">${rows}</div>
+      <div class="rpt-note"><strong style="color:var(--text2)">Consensus View:</strong> ${bank.note}<br><span style="color:var(--text3)">Source: ${bank.source}</span></div>
+    </div>`;
+  }).join('');
+
+  // ── INDIA FORECASTS ──
+  const trendIcon = t => t==='up' ? '<span class="trend-up">↑</span>' : t==='dn' ? '<span class="trend-dn">↓</span>' : '<span class="trend-fl">→</span>';
+
+  document.getElementById('india-forecast-body').innerHTML = INDIA_FORECASTS.map(r => `<tr>
+    <td class="td-name">${r.ind}</td>
+    <td class="td-val">${r.curr}</td>
+    <td class="td-val" style="color:var(--text2)">${r.q1}</td>
+    <td class="td-val" style="color:var(--blue)">${r.fy26}</td>
+    <td class="td-val" style="color:var(--text2)">${r.fy27}</td>
+    <td class="td-signal">${trendIcon(r.trend)}</td>
+    <td class="td-note" style="font-size:10px;color:var(--text3)">${r.src}</td>
+  </tr>`).join('');
+
+  document.getElementById('global-forecast-body').innerHTML = GLOBAL_FORECASTS.map(r => `<tr>
+    <td class="td-name">${r.ind}</td>
+    <td class="td-val">${r.curr}</td>
+    <td class="td-val" style="color:var(--blue)">${r.y26}</td>
+    <td class="td-val" style="color:var(--text2)">${r.y27}</td>
+    <td class="td-signal">${trendIcon(r.trend)}</td>
+    <td class="td-note" style="font-size:10px;color:var(--text3)">${r.src}</td>
+  </tr>`).join('');
+
+  // ── CALENDAR ──
+  const impactClass = i => i==='high'?'cal-high':i==='med'?'cal-med':'cal-low';
+  const impactLabel = i => i==='high'?'HIGH IMPACT':i==='med'?'MEDIUM':'LOW';
+  document.getElementById('calendar-grid').innerHTML = CALENDAR_EVENTS.map(month => `
+    <div class="cal-card">
+      <div class="cal-month">${month.month}</div>
+      ${month.events.map(e => `<div class="cal-event">
+        <div class="cal-date-box">
+          <div class="cal-day">${e.day}</div>
+          <div class="cal-mon">${e.mon}</div>
+        </div>
+        <div class="cal-body">
+          <div class="cal-event-name">${e.name}</div>
+          <div class="cal-event-sub">${e.sub}</div>
+          <span class="cal-impact ${impactClass(e.impact)}">${impactLabel(e.impact)}</span>
+        </div>
+      </div>`).join('')}
+    </div>`).join('');
+
+  // ── SCENARIOS ──
+  document.getElementById('scenario-grid').innerHTML = SCENARIOS.map(s => `
+    <div class="scenario-card">
+      <div class="sc-header" style="color:${s.color};border-color:${s.color}44">${s.label}</div>
+      <div class="sc-prob" style="color:${s.color}">${s.prob}</div>
+      <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">Probability estimate</div>
+      ${s.items.map(i => `<div class="sc-item"><div class="sc-label">${i.l}</div>${i.v}</div>`).join('')}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);line-height:1.7">
+        <strong style="color:var(--text2)">Trigger:</strong> ${s.trigger}
+      </div>
+    </div>`).join('');
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+
+window.addEventListener('load', loadAll);
+</script>
+</body>
+</html>
